@@ -1,4 +1,4 @@
-package Week3;
+package Month1.Week3;
 
 public class TreeNode {
     int value;

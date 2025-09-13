@@ -1,4 +1,4 @@
-package Week1;
+package Month1.Week1;
 
 class Animal{
     void walk(){
