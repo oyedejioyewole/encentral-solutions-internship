@@ -1,7 +1,7 @@
 package org.library.book.models;
 
 interface UserPrototype {
-    public int getPriorityLevel();
+    int getPriorityLevel();
 }
 
 public class User implements UserPrototype {

@@ -1,5 +1,7 @@
 package org.library.book.extras;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.library.book.models.*;
 import org.library.book.repositories.*;
 import org.library.book.services.LibraryService;
@@ -14,6 +16,7 @@ public class CLI {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final LibraryService libraryService;
+    private final Logger logger;
     private boolean running;
 
     public CLI() {
@@ -21,6 +24,7 @@ public class CLI {
         this.bookRepository = BookRepository.getInstance();
         this.userRepository = UserRepository.getInstance();
         this.libraryService = new LibraryService(bookRepository, userRepository);
+        this.logger = LogManager.getLogger(CLI.class);
         this.running = true;
     }
 
@@ -55,14 +59,16 @@ public class CLI {
     }
 
     private void displayMainMenu() {
-        System.out.println("═══════════════ MAIN MENU ═══════════════");
-        System.out.println("1. 📖 Browse Books");
-        System.out.println("2. 📝 Borrow a Book");
-        System.out.println("3. 📤 Return a Book");
-        System.out.println("4. 📊 View library stats");
-        System.out.println("0. 🚪 Exit");
-        System.out.println("═════════════════════════════════════════");
-        System.out.print("Choose an option (0-4): ");
+        System.out.println("""
+        ═══════════════ MAIN MENU ═══════════════
+        1. 📖 Browse Books
+        2. 📝 Borrow a Book
+        3. 📤 Return a Book
+        4. 📊 View library register
+        0. 🚪 Exit
+        ═════════════════════════════════════════
+        Choose an option (0-4): 
+        """);
     }
 
     private int getUserChoice() {
@@ -91,7 +97,7 @@ public class CLI {
                 handleReturnBook();
                 break;
             case 4:
-                handleViewReports();
+                handleViewRegister();
                 break;
             case 0:
                 running = false;
@@ -124,7 +130,7 @@ public class CLI {
                 displayAllAvailableBooks();
                 break;
             case 2:
-                searchBooksByTitle();
+                searchBooksByIsbn();
                 break;
             case 3:
                 viewBookDetails();
@@ -150,17 +156,17 @@ public class CLI {
         // Group by title for better display
         Map<String, List<Book>> booksByTitle = new HashMap<>();
         for (Book book : availableBooks) {
-            booksByTitle.computeIfAbsent(book.getTitle(), k -> new ArrayList<>()).add(book);
+            booksByTitle.computeIfAbsent(book.getTitle(), _ -> new ArrayList<>()).add(book);
         }
 
         booksByTitle.forEach((title, copies) -> {
             Book firstCopy = copies.getFirst();
-            System.out.printf("📖 %-40s | By: %-20s | Copies: %d\n",
-                    title, firstCopy.getAuthor(), copies.size());
+            System.out.printf("📖 %-40s | ISBN: %-20s | By: %-20s | Copies: %d\n",
+                    title, firstCopy.getIsbn(), firstCopy.getAuthor(), copies.size());
         });
     }
 
-    private void searchBooksByTitle() {
+    private void searchBooksByIsbn() {
         System.out.print("🔍 Enter book title to search: ");
         String searchTerm = scanner.nextLine().trim();
 
@@ -169,7 +175,7 @@ public class CLI {
             return;
         }
 
-        List<Book> matchingBooks = bookRepository.searchBooksWithTitle(searchTerm);
+        Map<String, List<Book>> matchingBooks = bookRepository.searchBooksWithTitle(searchTerm);
 
         if (matchingBooks.isEmpty()) {
             System.out.println("❌ No books found matching: " + searchTerm);
@@ -179,26 +185,21 @@ public class CLI {
         System.out.format("🔍 SEARCH RESULTS for '%s'%n", searchTerm);
         System.out.println("─────────────────────────────────────────────────────────");
 
-        Map<String, List<Book>> booksByTitle = new HashMap<>();
-        for (Book book : matchingBooks) {
-            booksByTitle.computeIfAbsent(book.getTitle(), k -> new ArrayList<>()).add(book);
-        }
-
-        booksByTitle.forEach((title, copies) -> {
+        matchingBooks.forEach((_, copies) -> {
             Book firstCopy = copies.getFirst();
             long availableCount = copies.stream().mapToLong(book -> book.isAvailable() ? 1 : 0).sum();
-            System.out.printf("📖 %-35s | By: %-15s | Available: %d/%d\n",
-                    title, firstCopy.getAuthor(), availableCount, copies.size());
+            System.out.printf("📖 %-35s | ISBN: %-20s | By: %-15s | Available: %d/%d\n",
+                    firstCopy.getTitle(), firstCopy.getIsbn(), firstCopy.getAuthor(), availableCount, copies.size());
         });
     }
 
     private void viewBookDetails() {
-        System.out.print("📖 Enter exact book title: ");
-        String title = scanner.nextLine().trim();
+        System.out.print("📖 Enter ISBN of the book: ");
+        String isbn = scanner.nextLine().trim();
 
-        List<Book> bookCopies = bookRepository.findByTitle(title);
+        List<Book> bookCopies = bookRepository.findByIsbn(isbn);
         if (bookCopies.isEmpty()) {
-            System.out.println("❌ Book not found: " + title);
+            System.out.println("❌ Book not found with ISBN: " + isbn);
             return;
         }
 
@@ -238,24 +239,24 @@ public class CLI {
             return;
         }
 
-        System.out.print("📖 Enter book title: ");
-        String bookTitle = scanner.nextLine().trim();
+        System.out.print("📖 Enter ISBN for book: ");
+        String bookIsbn = scanner.nextLine().trim();
 
-        if (bookTitle.isEmpty()) {
+        if (bookIsbn.isEmpty()) {
             System.out.println("❌ Book title cannot be empty!");
             return;
         }
 
         // Show user their priority level
-        String priorityLevel = getPriorityDescription(user);
-        System.out.println("🎯 Your priority level: " + priorityLevel);
+//        String priorityLevel = libraryService.(user);
+//        System.out.println("🎯 Your priority level: " + priorityLevel);
 
         // Attempt to borrow
-        String result = libraryService.borrowBook(bookTitle, user);
+        String result = libraryService.borrowBook(bookIsbn, user);
 
         if (result.equals("book taken")) {
             System.out.println("❌ " + result);
-            System.out.println("💡 All copies of '" + bookTitle + "' are currently borrowed.");
+            System.out.println("💡 All copies of '" + bookIsbn + "' are currently borrowed.");
         } else if (result.startsWith("Book not found")) {
             System.out.println("❌ " + result);
             System.out.println("💡 Try browsing available books first.");
@@ -316,12 +317,11 @@ public class CLI {
 
     // ==================== REPORTS ====================
 
-    private void handleViewReports() {
+    private void handleViewRegister() {
         System.out.println("📊 REPORTS");
-        System.out.println("1. Library Statistics");
-        System.out.println("2. User Statistics");
-        System.out.println("3. Popular Books");
-        System.out.println("4. Currently Borrowed Books");
+        System.out.println("1. View library statistics");
+        System.out.println("2. View registered users");
+        System.out.println("3. View books currently borrowed");
         System.out.println("0. Back to Main Menu");
         System.out.print("Choose a report: ");
 
@@ -336,9 +336,6 @@ public class CLI {
                 showUserStatistics();
                 break;
             case 3:
-                showPopularBooks();
-                break;
-            case 4:
                 showCurrentlyBorrowedBooks();
                 break;
             case 0:
@@ -352,59 +349,47 @@ public class CLI {
         List<Book> allBooks = bookRepository.findAll();
         List<Book> availableBooks = bookRepository.findAllAvailable();
 
-        System.out.println("📊 LIBRARY STATISTICS");
-        System.out.println("─────────────────────────────────");
-        System.out.println("Total Books: " + allBooks.size());
-        System.out.println("Available Books: " + availableBooks.size());
-        System.out.println("Borrowed Books: " + (allBooks.size() - availableBooks.size()));
-
-        // Calculate borrowing rate
-        double borrowingRate = allBooks.isEmpty() ? 0 :
-                ((double)(allBooks.size() - availableBooks.size()) / allBooks.size()) * 100;
-        System.out.printf("Borrowing Rate: %.1f%%\n", borrowingRate);
+        System.out.format("""
+         LIBRARY STATISTICS
+        ─────────────────────────────────
+        Total number of books: %d
+            Available books: %d
+            Borrowed books: %d
+        """, allBooks.size(), availableBooks.size(), (allBooks.size() - availableBooks.size()));
 
         // Show inventory summary
         System.out.println("\n📚 INVENTORY BY TITLE:");
         Map<String, Integer> inventory = bookRepository.getInventorySummary();
-        inventory.forEach((title, availability) -> {
-            System.out.println("  " + title + ": " + availability);
-        });
+        inventory.forEach((title, availability) -> System.out.println("  " + title + ": " + availability));
+        System.out.println();
     }
 
     private void showUserStatistics() {
         Map<String, Integer> userStats = userRepository.getUserStats();
+        List<User> allUsers = userRepository.findAllUsers();
 
-        System.out.println("👥 USER STATISTICS");
+        System.out.println(" USER REGISTER");
         System.out.println("─────────────────────────────────");
-        userStats.forEach((category, count) -> {
-            System.out.println(category + ": " + count);
-        });
-    }
 
-    private void showPopularBooks() {
-        List<Book> allBooks = bookRepository.findAll();
-        Map<String, Integer> borrowCounts = new HashMap<>();
-
-        // Count borrowed books by title
-        for (Book book : allBooks) {
-            if (!book.isAvailable()) {
-                borrowCounts.merge(book.getTitle(), 1, Integer::sum);
+        for (User user : allUsers) {
+            if (user.getUserType().equals(UserType.STUDENT)) {
+                Student student = (Student) user;
+                System.out.format("| %-40s | Student ID: %-20s | Student level: %-26s |", student.getName(), student.getId(), student.getStudentLevel());
+            } else if (user.getUserType().equals(UserType.TEACHER)) {
+                Teacher teacher = (Teacher) user;
+                System.out.format("| %-40s | Teacher ID: %-20s | Teaching department: %-20s |", teacher.getName(), teacher.getId(), teacher.getDepartment());
             }
+
+            System.out.println();
         }
 
-        if (borrowCounts.isEmpty()) {
-            System.out.println("📚 No books are currently borrowed.");
-            return;
-        }
+        System.out.println();
 
-        System.out.println("🔥 POPULAR BOOKS (Currently Borrowed)");
-        System.out.println("─────────────────────────────────────────");
+        System.out.println("👥 STATISTICS");
+        System.out.println("─────────────────────────────────");
+        userStats.forEach((category, count) -> System.out.println(category + ": " + count));
 
-        borrowCounts.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .forEach(entry -> {
-                    System.out.println("📖 " + entry.getKey() + ": " + entry.getValue() + " copies borrowed");
-                });
+        System.out.println();
     }
 
     private void showCurrentlyBorrowedBooks() {
@@ -430,15 +415,5 @@ public class CLI {
                     book.getTitle(), book.getCopyNumber(),
                     borrowerInfo, book.getBorrowedAt().toLocalDate());
         }
-    }
-
-    private String getPriorityDescription(User user) {
-        int priority = user.getPriorityLevel();
-        return switch (priority) {
-            case 1 -> "Highest (Teacher)";
-            case 2 -> "Medium (Senior Student)";
-            case 3 -> "Lower (Junior Student)";
-            default -> "Unknown";
-        };
     }
 }

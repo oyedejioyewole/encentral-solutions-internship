@@ -38,7 +38,7 @@ public class UserGenerator {
     private static int studentIdCounter = 1;
 
     private static Teacher generateRandomTeacher() {
-        String id = "T" + String.format("%03d", teacherIdCounter++);
+        String id = "T" + String.format("%04d", teacherIdCounter++);
         String name = generateRandomName();
         String department = TEACHER_DEPARTMENTS[random.nextInt(TEACHER_DEPARTMENTS.length)];
 

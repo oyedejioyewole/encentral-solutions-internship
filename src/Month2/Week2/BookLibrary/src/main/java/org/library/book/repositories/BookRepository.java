@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
  */
 public class BookRepository {
     private final Map<String, Book> books = new HashMap<>(); // { 'uniqueBookId': <Object: Book> }
-    private final Map<String, List<Book>> booksByTitle = new HashMap<>(); // { 'bookTitle': [ ..., <Object: Book> ] }
+    private final Map<String, List<Book>> booksWithTheirCopies = new HashMap<>(); // { 'bookIsbn': [ ..., <Object: Book> ] }
     private static BookRepository instance;
 
     private BookRepository() {}
@@ -30,26 +30,25 @@ public class BookRepository {
         books.put(book.getUniqueId(), book);
 
         // Group by title for finding all copies of same book
-        booksByTitle.computeIfAbsent(book.getTitle(), _ -> new ArrayList<>())
+        booksWithTheirCopies.computeIfAbsent(book.getIsbn(), _ -> new ArrayList<>())
                 .add(book);
     }
 
-    /**
-     * Find a specific book copy by ISBN and copy number
-     */
-    public Book findByUniqueId(String isbn, int copyNumber) {
-        String uniqueId = isbn + "-" + copyNumber;
-        return books.get(uniqueId);
-    }
+    public Map<String, List<Book>> searchBooksWithTitle(String query) {
+        Map<String, List<Book>> matches = new HashMap<>();
 
-    public List<Book> searchBooksWithTitle(String query) {
-        List<Book> matches = new ArrayList<>();
+        for (Map.Entry<String, List<Book>> book : booksWithTheirCopies.entrySet()) {
+            try {
+                Book firstBookCopy = book.getValue().getFirst();
 
-        for (Book book : books.values()) {
+                boolean hasQueryMatched = firstBookCopy.getTitle().toLowerCase().contains(query.toLowerCase());
 
-            if (book.getTitle().toLowerCase().contains(query.toLowerCase())) {
-                matches.add(book);
-            };
+                if (hasQueryMatched) {
+                    matches.putIfAbsent(firstBookCopy.getIsbn(), book.getValue());
+                }
+            } catch (NoSuchElementException error) {
+                System.out.println(error.getMessage());
+            }
         }
 
         return matches;
@@ -58,32 +57,25 @@ public class BookRepository {
     /**
      * Find all copies of a book by title
      */
-    public List<Book> findByTitle(String title) {
-        return booksByTitle.getOrDefault(title, new ArrayList<>());
+    public List<Book> findByIsbn(String isbn) {
+        return booksWithTheirCopies.getOrDefault(isbn, new ArrayList<>());
     }
 
     /**
      * Find all AVAILABLE copies of a book by title
      * This is what LibraryService uses for borrowing
      */
-    public List<Book> findAvailableByTitle(String title) {
-        return findByTitle(title).stream()
+    public List<Book> findAvailableByIsbn(String title) {
+        return findByIsbn(title).stream()
                 .filter(Book::isAvailable)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Get total number of copies for a book title
-     */
-    public int getTotalCopies(String title) {
-        return findByTitle(title).size();
-    }
-
-    /**
      * Get number of available copies for a book title
      */
-    public int getAvailableCopies(String title) {
-        return findAvailableByTitle(title).size();
+    public int getAvailableCopies(String isbn) {
+        return findAvailableByIsbn(isbn).size();
     }
 
     /**
@@ -97,10 +89,10 @@ public class BookRepository {
     }
 
     /**
-     * Get all books in the library (for admin/reports)
+     * Get all books in the library (used in statistics)
      */
     public List<Book> findAll() {
-        return new ArrayList<>(books.values());
+        return books.values().stream().toList();
     }
 
     /**
@@ -115,9 +107,13 @@ public class BookRepository {
     /**
      * Check if any copy of a book exists in the library
      */
-    public boolean existsByTitle(String title) {
-        return booksByTitle.containsKey(title) &&
-                !booksByTitle.get(title).isEmpty();
+    public boolean existsByIsbn(String isbn) {
+        return booksWithTheirCopies.containsKey(isbn) &&
+                !booksWithTheirCopies.get(isbn).isEmpty();
+    }
+
+    public int getTotalCopies(String isbn) {
+        return findByIsbn(isbn).size();
     }
 
     /**
@@ -125,11 +121,12 @@ public class BookRepository {
      */
     public Map<String, Integer> getInventorySummary() {
         Map<String, Integer> summary = new HashMap<>();
-        booksByTitle.forEach((title, copies) -> {
+        booksWithTheirCopies.forEach((isbn, copies) -> {
+            Book firstCopy = copies.getFirst();
             long availableCount = copies.stream()
                     .mapToLong(book -> book.isAvailable() ? 1 : 0)
                     .sum();
-            summary.put(title, (int) availableCount / copies.size());
+            summary.put(String.format("%s (%s)", firstCopy.getTitle(), isbn), (int) availableCount / copies.size());
         });
         return summary;
     }
