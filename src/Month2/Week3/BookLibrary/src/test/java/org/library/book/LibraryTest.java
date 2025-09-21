@@ -7,6 +7,7 @@ import org.library.book.model.Book;
 import org.library.book.model.Student;
 import org.library.book.service.LibraryService;
 import org.library.book.util.HibernateUtil;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class LibraryTest {
@@ -73,26 +74,31 @@ public class LibraryTest {
     void testBorrowBook() {
         Student anotherStudent = libraryService.createStudent("SS3-BC23455", "Angelina");
 
-        String borrowStatus = libraryService.borrowBook(anotherStudent.getStudentId(), testBook.getBookIsbn());
-        assertEquals("borrowed", borrowStatus);
+        Object borrowedBookOrStatus = libraryService.borrowBook(anotherStudent.getStudentId(), testBook.getBookIsbn());
+        assertInstanceOf(Book.class, borrowedBookOrStatus);
+        assertTrue(((Book) borrowedBookOrStatus).isBorrowed());
 
-        String secondBorrowStatus = libraryService.borrowBook(testStudent.getStudentId(), testBook.getBookIsbn());
-        assertEquals("book:already-borrowed", secondBorrowStatus);
+        borrowedBookOrStatus = libraryService.borrowBook(testStudent.getStudentId(), testBook.getBookIsbn());
+        assertInstanceOf(String.class, borrowedBookOrStatus);
+        assertEquals("book:already-borrowed", borrowedBookOrStatus);
     }
 
     @Test
     void testReturnBook() {
         Student anotherStudent = libraryService.createStudent("SS3-BC23455", "Angelina");
 
-        libraryService.borrowBook(anotherStudent.getStudentId(), testBook.getBookIsbn());
+        Object borrowedBookOrStatus = libraryService.borrowBook(anotherStudent.getStudentId(), testBook.getBookIsbn());
+        assertInstanceOf(Book.class, borrowedBookOrStatus);
+        assertTrue(((Book) borrowedBookOrStatus).isBorrowed());
 
         String returnStatus = libraryService.returnBook(anotherStudent.getStudentId());
         assertEquals("returned", returnStatus);
 
-        String secondReturnStatus = libraryService.returnBook(testStudent.getStudentId());
-        assertEquals("student:no-borrow-records", secondReturnStatus);
+        returnStatus = libraryService.returnBook(testStudent.getStudentId());
+        assertEquals("student:no-borrow-records", returnStatus);
 
-        String borrowStatus = libraryService.borrowBook(testStudent.getStudentId(), testBook.getBookIsbn());
-        assertEquals("borrowed", borrowStatus);
+        borrowedBookOrStatus = libraryService.borrowBook(testStudent.getStudentId(), testBook.getBookIsbn());
+        assertInstanceOf(Book.class, borrowedBookOrStatus);
+        assertTrue(((Book) borrowedBookOrStatus).isBorrowed());
     }
 }

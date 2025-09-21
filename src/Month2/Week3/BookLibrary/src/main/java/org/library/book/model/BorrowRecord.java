@@ -30,14 +30,13 @@ public class BorrowRecord {
         this.isReturned = false;
     }
 
-    public Book getBookThatWasBorrowed() {
-        return this.bookThatWasBorrowed;
+    public void setIsReturned(boolean isReturned) {
+        this.isReturned = isReturned;
+        this.bookThatWasBorrowed.setBorrowed(false);
     }
-
-    public void setIsReturned(boolean isReturned) { this.isReturned = isReturned; }
 
     @Override
     public String toString() {
-        return String.format("BorrowRecord{id='%s', student: %s, book: %s, isReturned: %b}", this.borrowRecordId, this.studentThatBorrowed, this.bookThatWasBorrowed, this.isReturned);
+        return String.format("BorrowRecord{id='%s', student: %s, book: %s, isReturned=%b}", this.borrowRecordId, this.studentThatBorrowed, this.bookThatWasBorrowed, this.isReturned);
     }
 }
