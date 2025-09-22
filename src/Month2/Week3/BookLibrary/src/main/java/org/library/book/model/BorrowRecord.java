@@ -30,6 +30,10 @@ public class BorrowRecord {
         this.isReturned = false;
     }
 
+    public Book getBookThatWasBorrowed() {
+        return this.bookThatWasBorrowed;
+    }
+
     public void setIsReturned(boolean isReturned) {
         this.isReturned = isReturned;
         this.bookThatWasBorrowed.setBorrowed(false);

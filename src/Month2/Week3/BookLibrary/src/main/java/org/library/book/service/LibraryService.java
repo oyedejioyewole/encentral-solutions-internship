@@ -38,31 +38,39 @@ public class LibraryService {
         return book;
     }
 
-    public Object borrowBook(String studentId, String bookIsbn) {
+    public BorrowRecord borrowBook(String studentId, String bookIsbn) {
         Student foundStudent =  new JPAQuery<Void>(session).select(qStudent).from(qStudent).where(qStudent.studentId.eq(studentId)).fetchOne();
 
         if (foundStudent == null) {
-            logger.warn("Student with ID '{}' couldn't be found", studentId);
-            return "student:not-found";
-        }
+            String message = String.format("Student with ID '%s' couldn't be found", studentId);
 
-        Long activeCount =  new JPAQuery<Void>(session).select(qBorrowRecord.count()).from(qBorrowRecord).where(qBorrowRecord.studentThatBorrowed.eq(foundStudent).and(qBorrowRecord.isReturned.isFalse())).fetchOne();
-
-        if (activeCount != null && activeCount > 0) {
-            logger.warn("Student with ID '{}' has borrowed a book before", studentId);
-            return "student:has-borrowed";
+            logger.warn(message);
+            throw new IllegalAccessError(message);
         }
 
         Book foundBook =  new JPAQuery<Void>(session).select(qBook).from(qBook).where(qBook.bookIsbn.eq(bookIsbn)).fetchOne();
 
         if (foundBook == null) {
-            logger.warn("The book with ISBN '{}' couldn't be found", bookIsbn);
-            return "book:not-found";
+            String message = String.format("The book with ISBN '%s' couldn't be found", bookIsbn);
+
+            logger.warn(message);
+            throw new IllegalAccessError(message);
         }
 
         if (foundBook.isBorrowed()) {
-            logger.warn("The book with ISBN '{}' has been borrowed already", bookIsbn);
-            return "book:already-borrowed";
+            String message = String.format("The book with ISBN '%s' has been borrowed already", bookIsbn);
+
+            logger.warn(message);
+            throw new IllegalStateException(message);
+        }
+
+        Long activeCount =  new JPAQuery<Void>(session).select(qBorrowRecord.count()).from(qBorrowRecord).where(qBorrowRecord.studentThatBorrowed.eq(foundStudent).and(qBorrowRecord.isReturned.isFalse())).fetchOne();
+
+        if (activeCount != null && activeCount > 0) {
+            String message = String.format("Student with ID '%s' has borrowed a book before", studentId);
+
+            logger.warn(message);
+            throw new IllegalStateException(message);
         }
 
         foundBook.setBorrowed(true);
@@ -70,27 +78,29 @@ public class LibraryService {
         session.persist(borrowRecord);
 
         logger.info(borrowRecord);
-
-        return foundBook;
+        return borrowRecord;
     }
 
-    public String returnBook(String studentId) {
+    public void returnBook(String studentId) {
         Student foundStudent = new JPAQuery<Void>(session).select(qStudent).from(qStudent).where(qStudent.studentId.eq(studentId)).fetchOne();
 
         if (foundStudent == null) {
-            logger.warn("Student with ID '{}' couldn't be found", studentId);
-            return "student:not-found";
+            String message = String.format("Student with ID '%s' couldn't be found", studentId);
+
+            logger.warn(message);
+            throw new IllegalAccessError(message);
         }
         BorrowRecord foundBorrowRecord = new JPAQuery<Void>(session).select(qBorrowRecord).from(qBorrowRecord).where(qBorrowRecord.studentThatBorrowed.eq(foundStudent).and(qBorrowRecord.isReturned.isFalse())).fetchOne();
 
         if (foundBorrowRecord == null) {
-            logger.warn("Student hasn't borrowed this book");
-            return "student:no-borrow-records";
+            String message = "Student hasn't borrowed this book";
+
+            logger.warn(message);
+            throw new IllegalStateException(message);
         }
 
         foundBorrowRecord.setIsReturned(true);
+        session.persist(foundBorrowRecord);
         logger.info(foundBorrowRecord);
-
-        return "returned";
     }
 }

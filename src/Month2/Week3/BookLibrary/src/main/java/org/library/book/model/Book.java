@@ -5,6 +5,10 @@ import jakarta.persistence.*;
 @Entity
 public class Book {
     @Id
+    @GeneratedValue (strategy = GenerationType.IDENTITY)
+    @Column (name = "book_id")
+    private long bookId;
+
     @Column (name = "book_isbn")
     private String bookIsbn;
 
