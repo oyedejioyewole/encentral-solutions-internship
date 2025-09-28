@@ -24,7 +24,7 @@ public class TodoService {
     }
 
     // User related stuff.
-    public String registerUser(String email, String password) throws IllegalArgumentException {
+    public String register(String email, String password) {
         return ErrorHandler.executeWithErrorHandling(() -> {
             Preconditions.checkArgument(!Strings.isNullOrEmpty(email), "Email cannot be null or empty");
             Preconditions.checkArgument(!Strings.isNullOrEmpty(password), "Password cannot be null or empty");
@@ -36,7 +36,7 @@ public class TodoService {
         });
     }
 
-    public String loginUser(String email, String password) {
+    public String login(String email, String password) {
         return ErrorHandler.executeWithErrorHandling(() -> {
             Preconditions.checkArgument(!Strings.isNullOrEmpty(email), "Email cannot be null or empty");
             Preconditions.checkArgument(!Strings.isNullOrEmpty(password), "Password cannot be null or empty");
@@ -54,15 +54,15 @@ public class TodoService {
         });
     }
 
-    public String updatePassword(String oldPassword, String newPassword) {
+    public String updatePassword(String currentPassword, String newPassword) {
         return ErrorHandler.executeWithErrorHandling(() -> {
-            Preconditions.checkArgument(!Strings.isNullOrEmpty(oldPassword), "Old password cannot be null or empty");
+            Preconditions.checkArgument(!Strings.isNullOrEmpty(currentPassword), "Old password cannot be null or empty");
             Preconditions.checkArgument(!Strings.isNullOrEmpty(newPassword), "New password cannot be null or empty");
             Preconditions.checkNotNull(currentUserId, "User not logged in");
 
             User user = userRepository.findUserWithId(currentUserId);
             Preconditions.checkNotNull(user, "User not found");
-            Preconditions.checkArgument(user.getPassword().equals(oldPassword), "The old password provided is invalid");
+            Preconditions.checkArgument(user.getPassword().equals(currentPassword), "The old password provided is invalid");
 
             user.setPassword(newPassword);
 

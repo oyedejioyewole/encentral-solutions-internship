@@ -30,8 +30,8 @@ public class TodoServiceTest {
 
     @Test
     @DisplayName("Should register user successfully with valid inputs")
-    void testRegisterUserSuccess() {
-        String response = todoService.registerUser("test@example.com", "password123");
+    void testRegisterSuccess() {
+        String response = todoService.register("test@example.com", "password123");
 
         ApiResponse<?> apiResponse = JacksonUtil.parse(response);
         assertTrue(apiResponse.success());
@@ -41,8 +41,8 @@ public class TodoServiceTest {
 
     @Test
     @DisplayName("Should fail to register user with null email")
-    void testRegisterUserNullEmail() {
-        String response = todoService.registerUser(null, "password123");
+    void testRegisterNullEmail() {
+        String response = todoService.register(null, "password123");
 
         ApiResponse<?> apiResponse = JacksonUtil.parse(response);
         assertFalse(apiResponse.success());
@@ -51,8 +51,8 @@ public class TodoServiceTest {
 
     @Test
     @DisplayName("Should fail to register user with empty email")
-    void testRegisterUserEmptyEmail() {
-        String response = todoService.registerUser("", "password123");
+    void testRegisterEmptyEmail() {
+        String response = todoService.register("", "password123");
 
         ApiResponse<?> apiResponse = JacksonUtil.parse(response);
         assertFalse(apiResponse.success());
@@ -61,8 +61,8 @@ public class TodoServiceTest {
 
     @Test
     @DisplayName("Should fail to register user with invalid email format")
-    void testRegisterUserInvalidEmail() {
-        String response = todoService.registerUser("invalid-email", "password123");
+    void testRegisterInvalidEmail() {
+        String response = todoService.register("invalid-email", "password123");
 
         ApiResponse<?> apiResponse = JacksonUtil.parse(response);
         assertFalse(apiResponse.success());
@@ -71,12 +71,12 @@ public class TodoServiceTest {
 
     @Test
     @DisplayName("Should fail to register user with duplicate email")
-    void testRegisterUserDuplicateEmail() {
+    void testRegisterDuplicateEmail() {
         // Register first user
-        todoService.registerUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
 
         // Try to register second user with same email
-        String response = todoService.registerUser("test@example.com", "password456");
+        String response = todoService.register("test@example.com", "password456");
 
         ApiResponse<?> apiResponse = JacksonUtil.parse(response);
         assertFalse(apiResponse.success());
@@ -85,8 +85,8 @@ public class TodoServiceTest {
 
     @Test
     @DisplayName("Should fail to register user with null password")
-    void testRegisterUserNullPassword() {
-        String response = todoService.registerUser("test@example.com", null);
+    void testRegisterNullPassword() {
+        String response = todoService.register("test@example.com", null);
 
         ApiResponse<?> apiResponse = JacksonUtil.parse(response);
         assertFalse(apiResponse.success());
@@ -95,12 +95,12 @@ public class TodoServiceTest {
 
     @Test
     @DisplayName("Should login user successfully with valid credentials")
-    void testLoginUserSuccess() {
+    void testLoginSuccess() {
         // Register user first
-        todoService.registerUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
 
         // Login
-        String response = todoService.loginUser("test@example.com", "password123");
+        String response = todoService.login("test@example.com", "password123");
 
         ApiResponse<?> apiResponse = JacksonUtil.parse(response);
         assertTrue(apiResponse.success());
@@ -109,8 +109,8 @@ public class TodoServiceTest {
 
     @Test
     @DisplayName("Should fail to login with non-existent user")
-    void testLoginUserNotFound() {
-        String response = todoService.loginUser("nonexistent@example.com", "password123");
+    void testLoginNotFound() {
+        String response = todoService.login("nonexistent@example.com", "password123");
 
         ApiResponse<?> apiResponse = JacksonUtil.parse(response);
         assertFalse(apiResponse.success());
@@ -119,12 +119,12 @@ public class TodoServiceTest {
 
     @Test
     @DisplayName("Should fail to login with wrong password")
-    void testLoginUserWrongPassword() {
+    void testLoginWrongPassword() {
         // Register user first
-        todoService.registerUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
 
         // Login with wrong password
-        String response = todoService.loginUser("test@example.com", "wrong-password");
+        String response = todoService.login("test@example.com", "wrong-password");
 
         ApiResponse<?> apiResponse = JacksonUtil.parse(response);
         assertFalse(apiResponse.success());
@@ -135,8 +135,8 @@ public class TodoServiceTest {
     @DisplayName("Should update password successfully when logged in")
     void testUpdatePasswordSuccess() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Update password
         String response = todoService.updatePassword("password123", "newPassword456");
@@ -172,8 +172,8 @@ public class TodoServiceTest {
     @Test
     @DisplayName("Should fail to update password if old password doesn't match password of current user")
     void testUpdatePasswordOldPasswordMismatch() {
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         ApiResponse<?> response = JacksonUtil.parse(todoService.updatePassword("passwrd123", "my-wonderful-password"));
         assertFalse(response.success());
@@ -185,8 +185,8 @@ public class TodoServiceTest {
     @DisplayName("Should add todo successfully when logged in")
     void testAddTodoSuccess() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Add todo
         String response = todoService.addTodo("Test Todo", "This is a test todo");
@@ -211,8 +211,8 @@ public class TodoServiceTest {
     @DisplayName("Should fail to add todo with empty title")
     void testAddTodoEmptyTitle() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Add todo with empty title
         String response = todoService.addTodo("", "This is a test todo");
@@ -225,8 +225,8 @@ public class TodoServiceTest {
     @Test
     @DisplayName("Should updated a todo provided its ID")
     void testUpdateTodo() {
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Add todo with empty title
         ApiResponse<?> response = JacksonUtil.parse(todoService.addTodo("Test Todo", "This is a test todo"));
@@ -247,8 +247,8 @@ public class TodoServiceTest {
     @Test
     @DisplayName("Should delete a todo provided its ID")
     void testDeleteTodo() {
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         ApiResponse<?> response = JacksonUtil.parse(todoService.addTodo("This week", "Walk Oliver (my dog)"));
         assertTrue(response.success());
@@ -277,8 +277,8 @@ public class TodoServiceTest {
     @DisplayName("Should get all todos successfully")
     void testGetAllTodosSuccess() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Add some todos
         todoService.addTodo("Todo 1", "First todo");
@@ -297,8 +297,8 @@ public class TodoServiceTest {
     @DisplayName("Should get active todos successfully")
     void testGetActiveTodosSuccess() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Add todo
         todoService.addTodo("Active Todo", "This is an active todo");
@@ -315,8 +315,8 @@ public class TodoServiceTest {
     @DisplayName("Should get completed todos successfully")
     void testGetCompletedTodosSuccess() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Get completed todos (should be empty initially)
         String response = todoService.fetchAllCompletedTodos();
@@ -330,8 +330,8 @@ public class TodoServiceTest {
     @DisplayName("Should search todos by title successfully")
     void testSearchTodosByTitle() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Add todos
         todoService.addTodo("Buy groceries", "Milk, Bread, Eggs");
@@ -349,8 +349,8 @@ public class TodoServiceTest {
     @DisplayName("Should search todos by details successfully")
     void testSearchTodosByDetails() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Add todos
         todoService.addTodo("Shopping", "Buy milk and bread from store");
@@ -378,8 +378,8 @@ public class TodoServiceTest {
     @DisplayName("Should fail to search todos with empty query")
     void testSearchTodosEmptyQuery() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Search with empty query
         String response = todoService.searchTodos("", "title");
@@ -393,8 +393,8 @@ public class TodoServiceTest {
     @DisplayName("Should get current user info successfully when logged in")
     void testGetCurrentUserSuccess() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Get current user
         String response = todoService.fetchCurrentUser();
@@ -419,8 +419,8 @@ public class TodoServiceTest {
     @DisplayName("Should logout successfully")
     void testLogoutSuccess() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Logout
         String response = todoService.logout();
@@ -442,14 +442,14 @@ public class TodoServiceTest {
     @DisplayName("Should support multiple users with isolated todos")
     void testMultipleUsersIsolation() {
         // Register and login first user
-        todoService.registerUser("user1@example.com", "password123");
-        todoService.loginUser("user1@example.com", "password123");
+        todoService.register("user1@example.com", "password123");
+        todoService.login("user1@example.com", "password123");
         todoService.addTodo("User 1 Todo", "This belongs to user 1");
 
         // Logout and register second user
         todoService.logout();
-        todoService.registerUser("user2@example.com", "password456");
-        todoService.loginUser("user2@example.com", "password456");
+        todoService.register("user2@example.com", "password456");
+        todoService.login("user2@example.com", "password456");
         todoService.addTodo("User 2 Todo", "This belongs to user 2");
 
         // Get todos for user 2 (should only see their own)
@@ -459,7 +459,7 @@ public class TodoServiceTest {
 
         // Verify isolation by logging back in as user 1
         todoService.logout();
-        todoService.loginUser("user1@example.com", "password123");
+        todoService.login("user1@example.com", "password123");
         String user1Response = todoService.fetchAllTodos();
         ApiResponse<?> user1ApiResponse = JacksonUtil.parse(user1Response);
         assertTrue(user1ApiResponse.success());
@@ -469,8 +469,8 @@ public class TodoServiceTest {
     @DisplayName("Should handle complete todo lifecycle")
     void testCompleteLifecycle() {
         // Register and login user
-        todoService.registerUser("test@example.com", "password123");
-        todoService.loginUser("test@example.com", "password123");
+        todoService.register("test@example.com", "password123");
+        todoService.login("test@example.com", "password123");
 
         // Add todo
         String addResponse = todoService.addTodo("Test Todo", "Initial description");
