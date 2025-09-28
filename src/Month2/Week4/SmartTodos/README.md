@@ -1,6 +1,6 @@
 # Introducing SmartTodos
 
-This is a comprehensive TODO application implemented in Java using: Guava, Jackson, and Apache Commons Collections. This application allows users to register, log in, and manage their personal to-do lists with full CRUD operations and search functionality.
+This is a comprehensive TODO application implemented in Java using Guava, Jackson, and Apache Commons Collections. This application allows users to register, log in, and manage their personal to-do lists with full CRUD operations and search functionality.
 
 ## Demonstration
 
@@ -56,7 +56,7 @@ The application uses in-memory storage with the following structure:
 #### Session Management
 - `TodoService` is a singleton to persist state across all instances.
 - Simple session management using a `currentUserId` field.
-- Users must login to perform todo operations.
+- Users must log in to perform todo operations.
 - Session persists until logout or application restart.
 
 #### UUID Generation
@@ -190,7 +190,7 @@ All API responses follow a consistent JSON format:
 
 ### Library Integration
 1. **Guava Integration**
-    - Extensive use of `Preconditions.checkArgument()` for validation
+    - Extensive use of `Preconditions.checkArgument()` and `Preconditions.checkNotNull()` for validation
     - Collection utilities for data manipulation
     - Ensures clean, readable validation code
 
