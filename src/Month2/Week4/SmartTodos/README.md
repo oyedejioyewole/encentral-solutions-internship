@@ -1,22 +1,23 @@
 # Introducing SmartTodos
 
-This is a comprehensive TODO application implemented in Java using: Guava, Jackson, and Apache Commons Collections. This application allows users to register, login, and manage their personal todo lists with full CRUD operations and search functionality.
+This is a comprehensive TODO application implemented in Java using: Guava, Jackson, and Apache Commons Collections. This application allows users to register, log in, and manage their personal to-do lists with full CRUD operations and search functionality.
 
 ## Demonstration
 
+https://github.com/user-attachments/assets/97b0301f-5506-4579-97fd-e1cb39b69928
 
 ## Features
 
 ### User Management
 - **User Registration**: Create new user accounts with unique email addresses (also mapped to a user's ID)
 - **User Login**: Authenticate users with email and password.
-- **Password Update**: Allow logged-in users to change their passwords requiring their `currentPassword` to be valid.
+- **Password Update**: Allow logged-in users to change their passwords, requiring their `currentPassword` to be valid.
 - **Session Management**: Simple session-based user state management.
 
 ### TODO Management (requires the user to be logged in)
 - **Add TODO**: Create new todo items with title and details
 - **Update TODO**: Modify existing todos (title, details, completion status).
-- **Delete TODO**: Remove todo from the system.
+- **Delete TODO**: Remove the todo from the system.
 - **View All TODOs**: Get all todos.
 - **Filter by Status**: Get only active or completed todos.
 - **Search TODOs**: Search todos by title, details, or creation date.
@@ -28,7 +29,7 @@ This is a comprehensive TODO application implemented in Java using: Guava, Jacks
 #### 1. Google Guava
 - **Preconditions**: Used extensively for input validation throughout the application
     - Validates non-null/non-empty inputs
-    - Ensures business logic constraints (unique emails, authorized access)
+    - Ensures business logic constraints (unique emails, authorised access)
 - **Collection Utilities**:
     - `Lists.newArrayList()` for creating lists
     - `Sets.newLinkedHashSet()` for removing duplicates in search results
@@ -82,7 +83,7 @@ The search functionality supports multiple search criteria:
 ```java
 TodoService service = new TodoService();
 String response = service.register("user@example.com", "password123");
-// Returns: {"success":true,"message":"User registered successfully","data":{...}}
+// Returns: {"success":true, "message": "User registered successfully", "data":{...}}
 ```
 
 #### Login
@@ -213,25 +214,6 @@ All API responses follow a consistent JSON format:
 - User isolation (users can only access their own todos)
 - Input validation to prevent malicious data
 
-## Future Enhancements
-
-### Potential Improvements
-- Password hashing using BCrypt or similar
-- Persistent storage (database integration)
-- RESTful API endpoints
-- User roles and permissions
-- Todo categories and tags
-- Due dates and reminders
-- Batch operations
-- Export functionality
-
-### Scalability Considerations
-- Database integration for persistent storage
-- Caching layer for frequently accessed data
-- API rate limiting
-- User session management with tokens
-- Microservices architecture
-
 ## Assumptions Made
 
 1. **Session Management**: Simple in-memory session using currentUserId field
@@ -245,18 +227,10 @@ All API responses follow a consistent JSON format:
 
 ## Dependencies
 
-- **Google Guava 31.1-jre**: Preconditions, collection utilities
-- **Jackson 2.15.2**: JSON processing and datetime handling
-- **Apache Commons Collections 4.4**: Specialized collections (BidiMap, MultiValuedMap)
-- **JUnit 5.9.0**: Testing framework (for future test implementation)
-
-## License
-
-This project is created for educational/demonstration purposes. Feel free to use and modify as needed.
-
-## Contact
-
-For questions or issues, please open an issue in the GitHub repository.
+- **Google Guava 33.5.0-jre**: Preconditions, collection utilities
+- **Jackson 2.19.2**: JSON processing and datetime handling
+- **Apache Commons Collections 4.5**: Specialized collections (BidiMap, MultiValuedMap)
+- **JUnit 5.13.4**: Testing framework (for future test implementation)
 
 ---
 
