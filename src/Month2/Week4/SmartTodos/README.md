@@ -100,7 +100,7 @@ String response = service.logout();
 
 #### Update Password
 ```java
-String response = service.updatePassword("newPassword456");
+String response = service.updatePassword("oldPassword123", "newPassword456");
 // Returns: {"success":true,"message":"Password updated successfully","data":null}
 ```
 
