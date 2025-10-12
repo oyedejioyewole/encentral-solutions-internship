@@ -71,7 +71,7 @@ public class ParticipantController {
     )
     @Operation(
         summary = "Upload participants",
-        description = "Upload participants from CSV or Excel file. File should contain columns: name, email, phone (optional)"
+        description = "Upload participants from CSV file. File should contain columns: name, email, phone (optional)"
     )
     @ApiResponses(
         value = {
@@ -93,7 +93,7 @@ public class ParticipantController {
     public ResponseEntity<List<ParticipantDTO>> uploadParticipants(
         @Parameter(description = "Event ID") @PathVariable String eventId,
         @Parameter(
-            description = "CSV or Excel file containing participant data",
+            description = "CSV file containing participant data",
             content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
         ) @RequestParam("file") MultipartFile file
     ) {

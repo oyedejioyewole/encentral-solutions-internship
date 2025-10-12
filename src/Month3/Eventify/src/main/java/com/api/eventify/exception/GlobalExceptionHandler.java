@@ -18,11 +18,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
-        ResourceNotFoundException ex
+        ResourceNotFoundException exception
     ) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.NOT_FOUND.value(),
-            ex.getMessage(),
+            exception.getMessage(),
             LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
@@ -30,11 +30,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorizedException(
-        UnauthorizedException ex
+        UnauthorizedException exception
     ) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.FORBIDDEN.value(),
-            ex.getMessage(),
+            exception.getMessage(),
             LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
@@ -42,11 +42,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidFileException.class)
     public ResponseEntity<ErrorResponse> handleInvalidFileException(
-        InvalidFileException ex
+        InvalidFileException exception
     ) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
-            ex.getMessage(),
+            exception.getMessage(),
             LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(
-        BadCredentialsException ex
+        BadCredentialsException exception
     ) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.UNAUTHORIZED.value(),
@@ -66,11 +66,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(
-        UsernameNotFoundException ex
+        UsernameNotFoundException exception
     ) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.NOT_FOUND.value(),
-            ex.getMessage(),
+            exception.getMessage(),
             LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
@@ -78,10 +78,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(
-        MethodArgumentNotValidException ex
+        MethodArgumentNotValidException exception
     ) {
         Map<String, String> errors = new HashMap<>();
-        ex
+        exception
             .getBindingResult()
             .getAllErrors()
             .forEach(error -> {
@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(
-        MaxUploadSizeExceededException ex
+        MaxUploadSizeExceededException exception
     ) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
@@ -106,21 +106,23 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(
-        RuntimeException ex
+        RuntimeException exception
     ) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
-            ex.getMessage(),
+            exception.getMessage(),
             LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleGlobalException(
+        Exception exception
+    ) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "An unexpected error occurred: " + ex.getMessage(),
+            "An unexpected error occurred: " + exception.getMessage(),
             LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(

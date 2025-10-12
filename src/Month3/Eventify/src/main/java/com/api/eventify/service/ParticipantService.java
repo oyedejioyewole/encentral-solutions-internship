@@ -15,8 +15,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -93,11 +91,9 @@ public class ParticipantService {
 
         if (filename.endsWith(".csv")) {
             participants = parseCSV(file, event);
-        } else if (filename.endsWith(".xlsx") || filename.endsWith(".xls")) {
-            participants = parseExcel(file, event);
         } else {
             throw new InvalidFileException(
-                "Unsupported file format. Please upload CSV or Excel file."
+                "Unsupported file format. Please upload CSV file."
             );
         }
 
@@ -194,67 +190,6 @@ public class ParticipantService {
         }
 
         return participants;
-    }
-
-    private List<Participant> parseExcel(MultipartFile file, Event event) {
-        List<Participant> participants = new ArrayList<>();
-
-        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
-            Sheet sheet = workbook.getSheetAt(0);
-            boolean isHeader = true;
-
-            for (Row row : sheet) {
-                if (isHeader) {
-                    isHeader = false;
-                    continue;
-                }
-
-                Cell nameCell = row.getCell(0);
-                Cell emailCell = row.getCell(1);
-                Cell phoneCell = row.getCell(2);
-
-                if (nameCell != null && emailCell != null) {
-                    Participant participant = new Participant();
-                    participant.setName(getCellValueAsString(nameCell));
-                    participant.setEmail(getCellValueAsString(emailCell));
-
-                    if (phoneCell != null) {
-                        participant.setPhone(getCellValueAsString(phoneCell));
-                    }
-
-                    participant.setEvent(event);
-                    participant.setInvitationStatus(
-                        Participant.InvitationStatus.PENDING
-                    );
-                    participants.add(participant);
-                }
-            }
-        } catch (Exception e) {
-            throw new InvalidFileException(
-                "Error parsing Excel file: " + e.getMessage()
-            );
-        }
-
-        if (participants.isEmpty()) {
-            throw new InvalidFileException(
-                "No valid participant data found in file"
-            );
-        }
-
-        return participants;
-    }
-
-    private String getCellValueAsString(Cell cell) {
-        if (cell == null) return "";
-
-        switch (cell.getCellType()) {
-            case STRING:
-                return cell.getStringCellValue().trim();
-            case NUMERIC:
-                return String.valueOf((long) cell.getNumericCellValue());
-            default:
-                return "";
-        }
     }
 
     private ParticipantDTO convertToDTO(Participant participant) {
