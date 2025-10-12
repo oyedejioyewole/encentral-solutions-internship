@@ -2,11 +2,15 @@ package com.api.eventify.service;
 
 import com.api.eventify.dto.EventDTO;
 import com.api.eventify.exception.ResourceNotFoundException;
+import com.api.eventify.exception.UnauthorizedException;
 import com.api.eventify.model.Event;
+import com.api.eventify.model.User;
 import com.api.eventify.repository.EventRepository;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.api.eventify.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,45 +19,71 @@ import org.springframework.transaction.annotation.Transactional;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final CustomUserDetailsService userDetailsService;
+
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+        return userDetailsService.loadUserEntityByEmail(email);
+    }
+
+    private void verifyEventOwnership(Event event, User user) {
+        if (!event.getUser().getId().equals(user.getId())) {
+            throw new UnauthorizedException(
+                "You do not have permission to access this event"
+            );
+        }
+    }
 
     @Transactional
     public EventDTO createEvent(EventDTO eventDTO) {
+        User currentUser = getCurrentUser();
+
         Event event = new Event();
         event.setTitle(eventDTO.getTitle());
         event.setDescription(eventDTO.getDescription());
         event.setEventDate(eventDTO.getEventDate());
         event.setLocation(eventDTO.getLocation());
+        event.setUser(currentUser);
 
         Event savedEvent = eventRepository.save(event);
         return convertToDTO(savedEvent);
     }
 
     @Transactional(readOnly = true)
-    public List<EventDTO> getAllEvents() {
+    public Page<EventDTO> getAllEvents(Pageable pageable) {
+        User currentUser = getCurrentUser();
         return eventRepository
-            .findAll()
-            .stream()
-            .map(this::convertToDTO)
-            .collect(Collectors.toList());
+            .findByUserId(currentUser.getId(), pageable)
+            .map(this::convertToDTO);
     }
 
     @Transactional(readOnly = true)
-    public EventDTO getEventById(Long id) {
+    public EventDTO getEventById(String id) {
+        User currentUser = getCurrentUser();
+
         Event event = eventRepository
             .findById(id)
             .orElseThrow(() ->
                 new ResourceNotFoundException("Event not found with id: " + id)
             );
+        verifyEventOwnership(event, currentUser);
+
         return convertToDTO(event);
     }
 
     @Transactional
-    public EventDTO updateEvent(Long id, EventDTO eventDTO) {
+    public EventDTO updateEvent(String id, EventDTO eventDTO) {
+        User currentUser = getCurrentUser();
+
         Event event = eventRepository
             .findById(id)
             .orElseThrow(() ->
                 new ResourceNotFoundException("Event not found with id: " + id)
             );
+
+        verifyEventOwnership(event, currentUser);
 
         event.setTitle(eventDTO.getTitle());
         event.setDescription(eventDTO.getDescription());
@@ -65,12 +95,15 @@ public class EventService {
     }
 
     @Transactional
-    public EventDTO patchEvent(Long id, EventDTO eventDTO) {
+    public EventDTO patchEvent(String id, EventDTO eventDTO) {
+        User currentUser = getCurrentUser();
         Event event = eventRepository
             .findById(id)
             .orElseThrow(() ->
                 new ResourceNotFoundException("Event not found with id: " + id)
             );
+
+        verifyEventOwnership(event, currentUser);
 
         if (eventDTO.getTitle() != null) {
             event.setTitle(eventDTO.getTitle());
@@ -90,22 +123,24 @@ public class EventService {
     }
 
     @Transactional
-    public void deleteEvent(Long id) {
+    public void deleteEvent(String id) {
+        User currentUser = getCurrentUser();
         Event event = eventRepository
             .findById(id)
             .orElseThrow(() ->
                 new ResourceNotFoundException("Event not found with id: " + id)
             );
+
+        verifyEventOwnership(event, currentUser);
         eventRepository.delete(event);
     }
 
     @Transactional(readOnly = true)
-    public List<EventDTO> searchEvents(String keyword) {
+    public Page<EventDTO> searchEvents(String keyword, Pageable pageable) {
+        User currentUser = getCurrentUser();
         return eventRepository
-            .searchEvents(keyword)
-            .stream()
-            .map(this::convertToDTO)
-            .collect(Collectors.toList());
+            .searchEventsByUser(currentUser.getId(), keyword, pageable)
+            .map(this::convertToDTO);
     }
 
     private EventDTO convertToDTO(Event event) {

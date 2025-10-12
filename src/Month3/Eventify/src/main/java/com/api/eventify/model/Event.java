@@ -18,8 +18,8 @@ import lombok.NoArgsConstructor;
 public class Event {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @NotBlank(message = "Title is required")
     @Column(nullable = false)
@@ -35,6 +35,10 @@ public class Event {
     @NotBlank(message = "Location is required")
     @Column(nullable = false)
     private String location;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @OneToMany(
         mappedBy = "event",

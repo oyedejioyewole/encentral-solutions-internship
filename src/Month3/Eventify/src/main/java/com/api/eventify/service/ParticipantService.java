@@ -3,18 +3,23 @@ package com.api.eventify.service;
 import com.api.eventify.dto.ParticipantDTO;
 import com.api.eventify.exception.InvalidFileException;
 import com.api.eventify.exception.ResourceNotFoundException;
+import com.api.eventify.exception.UnauthorizedException;
 import com.api.eventify.model.Event;
 import com.api.eventify.model.Participant;
+import com.api.eventify.model.User;
 import com.api.eventify.repository.EventRepository;
 import com.api.eventify.repository.ParticipantRepository;
+import com.api.eventify.security.CustomUserDetailsService;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,30 +30,29 @@ public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
     private final EventRepository eventRepository;
+    private final CustomUserDetailsService userDetailsService;
 
-    @Transactional(readOnly = true)
-    public List<ParticipantDTO> getParticipantsByEventId(Long eventId) {
-        // Verify event exists
-        eventRepository
-            .findById(eventId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "Event not found with id: " + eventId
-                )
-            );
-
-        return participantRepository
-            .findByEventId(eventId)
-            .stream()
-            .map(this::convertToDTO)
-            .collect(Collectors.toList());
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+        return userDetailsService.loadUserEntityByEmail(email);
     }
 
-    @Transactional
-    public List<ParticipantDTO> uploadParticipants(
-        Long eventId,
-        MultipartFile file
+    private void verifyEventOwnership(Event event, User user) {
+        if (!event.getUser().getId().equals(user.getId())) {
+            throw new UnauthorizedException(
+                "You do not have permission to access this event"
+            );
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ParticipantDTO> getParticipantsByEventId(
+        String eventId,
+        Pageable pageable
     ) {
+        User currentUser = getCurrentUser();
         Event event = eventRepository
             .findById(eventId)
             .orElseThrow(() ->
@@ -56,6 +60,29 @@ public class ParticipantService {
                     "Event not found with id: " + eventId
                 )
             );
+
+        verifyEventOwnership(event, currentUser);
+
+        return participantRepository
+            .findByEventId(eventId, pageable)
+            .map(this::convertToDTO);
+    }
+
+    @Transactional
+    public List<ParticipantDTO> uploadParticipants(
+        String eventId,
+        MultipartFile file
+    ) {
+        User currentUser = getCurrentUser();
+        Event event = eventRepository
+            .findById(eventId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "Event not found with id: " + eventId
+                )
+            );
+
+        verifyEventOwnership(event, currentUser);
 
         String filename = file.getOriginalFilename();
         if (filename == null) {
@@ -77,10 +104,47 @@ public class ParticipantService {
         List<Participant> savedParticipants = participantRepository.saveAll(
             participants
         );
-        return savedParticipants
-            .stream()
-            .map(this::convertToDTO)
-            .collect(Collectors.toList());
+        List<ParticipantDTO> dtos = new ArrayList<>();
+        for (Participant p : savedParticipants) {
+            dtos.add(convertToDTO(p));
+        }
+        return dtos;
+    }
+
+    @Transactional
+    public ParticipantDTO updateParticipantStatus(
+        String eventId,
+        String participantId,
+        Participant.InvitationStatus status
+    ) {
+        User currentUser = getCurrentUser();
+        Event event = eventRepository
+            .findById(eventId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "Event not found with id: " + eventId
+                )
+            );
+
+        verifyEventOwnership(event, currentUser);
+
+        Participant participant = participantRepository
+            .findById(participantId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "Participant not found with id: " + participantId
+                )
+            );
+
+        if (!participant.getEvent().getId().equals(eventId)) {
+            throw new UnauthorizedException(
+                "Participant does not belong to this event"
+            );
+        }
+
+        participant.setInvitationStatus(status);
+        Participant updated = participantRepository.save(participant);
+        return convertToDTO(updated);
     }
 
     private List<Participant> parseCSV(MultipartFile file, Event event) {
@@ -97,12 +161,11 @@ public class ParticipantService {
             while ((line = reader.readLine()) != null) {
                 if (isHeader) {
                     isHeader = false;
-                    continue; // Skip header row
+                    continue;
                 }
 
                 String[] fields = line.split(",");
                 if (fields.length >= 2) {
-                    // At least name and email
                     Participant participant = new Participant();
                     participant.setName(fields[0].trim());
                     participant.setEmail(fields[1].trim());
@@ -143,7 +206,7 @@ public class ParticipantService {
             for (Row row : sheet) {
                 if (isHeader) {
                     isHeader = false;
-                    continue; // Skip header row
+                    continue;
                 }
 
                 Cell nameCell = row.getCell(0);

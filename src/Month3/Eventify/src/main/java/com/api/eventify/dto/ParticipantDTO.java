@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ParticipantDTO {
 
-    private Long id;
+    private String id;
 
     @NotBlank(message = "Name is required")
     private String name;
@@ -24,6 +24,6 @@ public class ParticipantDTO {
 
     private String phone;
     private InvitationStatus invitationStatus;
-    private Long eventId;
+    private String eventId;
     private LocalDateTime createdAt;
 }

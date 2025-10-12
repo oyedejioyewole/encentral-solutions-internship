@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EventDTO {
 
-    private Long id;
+    private String id;
 
     @NotBlank(message = "Title is required")
     private String title;
