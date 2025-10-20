@@ -1,6 +1,5 @@
 package com.encentral.event_management.impl;
 
-import com.encentral.entities.AttendanceStatus;
 import com.encentral.entities.JpaAttendance;
 import com.encentral.entities.JpaUser;
 import com.encentral.entities.UserRole;
@@ -182,8 +181,7 @@ public class DefaultEmployeeManagementImpl implements IEmployeeManagement {
             // Mark attendance
             JpaAttendance attendance = new JpaAttendance(
                     user,
-                    today,
-                    AttendanceStatus.PRESENT
+                    today
             );
 
             em.persist(attendance);

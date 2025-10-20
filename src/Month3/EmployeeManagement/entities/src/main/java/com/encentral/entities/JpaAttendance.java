@@ -27,14 +27,6 @@ public class JpaAttendance {
     @Column(nullable = false)
     private LocalDate date;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AttendanceStatus status;
-
-    private LocalDateTime checkInTime;
-
-    private LocalDateTime checkOutTime;
-
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -43,12 +35,10 @@ public class JpaAttendance {
 
     public JpaAttendance(
         JpaUser employee,
-        LocalDate date,
-        AttendanceStatus status
+        LocalDate date
     ) {
         this.employee = employee;
         this.date = date;
-        this.status = status;
     }
 
     @PrePersist
