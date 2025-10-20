@@ -1,7 +1,6 @@
 package com.encentral.entities;
 
 import jakarta.persistence.*;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -15,7 +14,7 @@ import lombok.*;
 )
 @Data
 @NoArgsConstructor
-public class JpaAttendanceRecord {
+public class JpaAttendance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -42,7 +41,7 @@ public class JpaAttendanceRecord {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public JpaAttendanceRecord(
+    public JpaAttendance(
         JpaUser employee,
         LocalDate date,
         AttendanceStatus status
@@ -50,7 +49,6 @@ public class JpaAttendanceRecord {
         this.employee = employee;
         this.date = date;
         this.status = status;
-        this.status = AttendanceStatus.ABSENT;
     }
 
     @PrePersist
@@ -63,18 +61,4 @@ public class JpaAttendanceRecord {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
-    // Helper method to calculate work hours
-    public Double calculateWorkHours() {
-        if (checkInTime != null && checkOutTime != null) {
-            Duration duration = Duration.between(checkInTime, checkOutTime);
-            return duration.toMinutes() / 60.0;
-        }
-        return null;
-    }
-}
-
-enum AttendanceStatus {
-    PRESENT,
-    ABSENT,
 }

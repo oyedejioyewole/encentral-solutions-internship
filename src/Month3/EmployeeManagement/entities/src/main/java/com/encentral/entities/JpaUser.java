@@ -1,7 +1,6 @@
 package com.encentral.entities;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.*;
@@ -20,7 +19,7 @@ public class JpaUser {
     private String email;
 
     @Column(nullable = false)
-    private String password; // Should be hashed
+    private String password;
 
     @Column(nullable = false)
     private String firstName;
@@ -34,6 +33,9 @@ public class JpaUser {
 
     private String department;
 
+    @Column(nullable = false, unique = true)
+    private String token;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -41,25 +43,26 @@ public class JpaUser {
     private LocalDateTime updatedAt;
 
     @OneToMany(
-        mappedBy = "employee",
-        cascade = CascadeType.ALL,
-        fetch = FetchType.LAZY
+            mappedBy = "employee",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY
     )
-    private List<JpaAttendanceRecord> attendanceRecords;
+    private List<JpaAttendance> attendanceRecords;
 
     public JpaUser(
-        String email,
-        String password,
-        String firstName,
-        String lastName,
-        UserRole role,
-        LocalDate joinDate
+            String email,
+            String password,
+            String firstName,
+            String lastName,
+            UserRole role,
+            String token
     ) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.role = role;
+        this.token = token;
     }
 
     @PrePersist
@@ -73,13 +76,7 @@ public class JpaUser {
         updatedAt = LocalDateTime.now();
     }
 
-    // Helper method
     public String getFullName() {
         return firstName + " " + lastName;
     }
-}
-
-enum UserRole {
-    ADMIN,
-    EMPLOYEE,
 }

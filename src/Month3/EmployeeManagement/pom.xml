@@ -54,6 +54,12 @@
             <version>${immutables.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.34</version>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
     <build>
@@ -129,7 +135,6 @@
                         </execution>
                     </executions>
                 </plugin>
-
             </plugins>
         </pluginManagement>
     </build>
@@ -157,5 +162,7 @@
         <module>commons</module>
         <module>binder</module>
         <module>integration-tests</module>
+        <module>event-management-api</module>
+        <module>event-management-impl</module>
     </modules>
 </project>

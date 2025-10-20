@@ -4,10 +4,10 @@
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 
     <class>com.encentral.entities.JpaUser</class>
-    <class>com.encentral.entities.JpaAttendanceRecord</class>
+    <class>com.encentral.entities.JpaAttendance</class>
 
     <properties>
-      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/tamsyv2"/>
+      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/employee_management"/>
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
     </properties>
   </persistence-unit>
