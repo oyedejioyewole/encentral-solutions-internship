@@ -6,6 +6,7 @@
 package com.encentral.scaffold.binder;
 
 import com.encentral.event_management.impl.EmployeeManagementModule;
+import com.encentral.event_management.impl.StartupInitializer;
 import com.google.inject.AbstractModule;
 import play.libs.akka.AkkaGuiceSupport;
 
@@ -22,6 +23,7 @@ public class Module extends AbstractModule implements AkkaGuiceSupport {
         super.configure();
 
         bind(BigBang.class).asEagerSingleton();
+        bind(StartupInitializer.class).asEagerSingleton();
 
         install(new EmployeeManagementModule());
     }
