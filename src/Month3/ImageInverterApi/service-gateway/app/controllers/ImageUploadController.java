@@ -4,6 +4,7 @@ import com.encentral.image_inverter.impl.ImageProcessingService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import play.libs.Json;
+import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -22,7 +23,8 @@ public class ImageUploadController extends Controller {
         this.imageProcessingService = imageProcessingService;
     }
 
-    public CompletionStage<Result> uploadImage(Http.Request request) {
+    public CompletionStage<Result> uploadImage() {
+        Http.Request request = request(); // get the current Http.Request
         Http.MultipartFormData<File> body = request.body().asMultipartFormData();
 
         if (body == null) {
@@ -60,11 +62,9 @@ public class ImageUploadController extends Controller {
                     response.put("message", "Image processed successfully");
                     return created(response);
                 })
-                .exceptionally(throwable -> {
-                    return internalServerError(
-                            createErrorResponse("Failed to process image: " + throwable.getMessage())
-                    );
-                });
+                .exceptionally(throwable -> internalServerError(
+                        createErrorResponse("Failed to process image: " + throwable.getMessage())
+                ));
     }
 
     private JsonNode createErrorResponse(String message) {

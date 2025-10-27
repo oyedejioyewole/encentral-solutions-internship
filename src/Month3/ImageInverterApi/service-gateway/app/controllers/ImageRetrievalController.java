@@ -3,6 +3,7 @@ package controllers;
 import com.encentral.image_inverter.impl.ImageProcessingService;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Results;
 
 import javax.inject.Inject;
 import java.util.UUID;
@@ -23,10 +24,7 @@ public class ImageRetrievalController extends Controller {
             UUID imageId = UUID.fromString(id);
 
             return imageProcessingService.getImageFile(imageId)
-                    .thenApply(file -> {
-                        String contentType = getContentType(file.getName());
-                        return ok(file).as(contentType);
-                    })
+                    .thenApply(Results::ok)
                     .exceptionally(throwable -> notFound("Image not found: " + throwable.getMessage()));
         } catch (IllegalArgumentException e) {
             return CompletableFuture.completedFuture(
@@ -35,19 +33,4 @@ public class ImageRetrievalController extends Controller {
         }
     }
 
-    private String getContentType(String fileName) {
-        String lowerCaseFileName = fileName.toLowerCase();
-        if (lowerCaseFileName.endsWith(".jpg") || lowerCaseFileName.endsWith(".jpeg")) {
-            return "image/jpeg";
-        } else if (lowerCaseFileName.endsWith(".png")) {
-            return "image/png";
-        } else if (lowerCaseFileName.endsWith(".gif")) {
-            return "image/gif";
-        } else if (lowerCaseFileName.endsWith(".bmp")) {
-            return "image/bmp";
-        } else if (lowerCaseFileName.endsWith(".webp")) {
-            return "image/webp";
-        }
-        return "image/jpeg"; // default
-    }
 }

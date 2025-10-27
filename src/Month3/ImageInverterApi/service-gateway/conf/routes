@@ -21,7 +21,7 @@ GET            /api-docs                                                       c
 # Image Processing API Routes
 
 # Upload and process image
-POST    /api/images/upload              controllers.ImageUploadController.uploadImage(request: Request)
+POST    /api/images/upload              controllers.ImageUploadController.uploadImage()
 
 # Get processed image by ID
 GET     /api/images/:id                 controllers.ImageRetrievalController.getImage(id: String)
