@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <guava.version>33.5.0-jre</guava.version>
-        <jackson.version>2.19.2</jackson.version>
+        <jackson.version>2.21.1</jackson.version>
         <junit.version>5.13.4</junit.version>
         <commons.collections.version>4.5.0</commons.collections.version>
     </properties>
